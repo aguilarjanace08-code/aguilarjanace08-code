@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jan Ace | Media Gallery</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", sans-serif;
+      background-color: #0f0f0f;
+      color: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: 2.5rem;
+      text-align: center;
+    }
+
+    p.subtitle {
+      color: #aaa;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .gallery img, .gallery video {
+      width: 100%;
+      border-radius: 10px;
+      object-fit: cover;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+      transition: transform 0.3s;
+    }
+
+    .gallery img:hover, .gallery video:hover {
+      transform: scale(1.03);
+    }
+
+    footer {
+      margin-top: 50px;
+      color: #666;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Jan Ace Gallery</h1>
+  <p class="subtitle">Upload images and videos to the <code>/uploads</code> folder to update this gallery.</p>
+
+  <div class="gallery" id="gallery"></div>
+
+  <footer>© 2025 Jan Ace</footer>
+
+  <script>
+    async function loadFiles() {
+      const gallery = document.getElementById("gallery");
+
+      try {
+        const response = await fetch("uploads/");
+        const text = await response.text();
+
+        const parser = new DOMParser();
+        const htmlDoc = parser.parseFromString(text, "text/html");
+        const links = Array.from(htmlDoc.querySelectorAll("a"))
+          .map(a => a.getAttribute("href"))
+          .filter(href => /\.(jpg|jpeg|png|gif|mp4|webm|mov)$/i.test(href));
+
+        if (links.length === 0) {
+          gallery.innerHTML = "<p>No files found yet. Add images or videos to the <code>/uploads</code> folder.</p>";
+          return;
+        }
+
+        links.forEach(file => {
+          const fileURL = `uploads/${file}`;
+          let el;
+          if (/\.(mp4|webm|mov)$/i.test(file)) {
+            el = document.createElement("video");
+            el.src = fileURL;
+            el.controls = true;
+          } else {
+            el = document.createElement("img");
+            el.src = fileURL;
+          }
+          gallery.appendChild(el);
+        });
+      } catch (err) {
+        console.error(err);
+        gallery.innerHTML = "<p>⚠️ Could not load files. Make sure the /uploads folder exists.</p>";
+      }
+    }
+
+    loadFiles();
+  </script>
+</body>
+</html>
